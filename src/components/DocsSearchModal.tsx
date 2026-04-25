@@ -1,4 +1,4 @@
-import { useEffect, useEffectEvent, useMemo, useRef, useState } from "react";
+import { useEffect, useEffectEvent, useRef, useState } from "react";
 import type { Hit } from "instantsearch.js";
 import {
   Configure,
@@ -6,7 +6,7 @@ import {
   InstantSearch,
   PoweredBy,
   Snippet,
-  useHits,
+  useInfiniteHits,
   useInstantSearch,
   useMenu,
   useSearchBox,
@@ -42,12 +42,6 @@ type AlgoliaDocHit = {
 };
 
 type SearchRenderableHit = Hit<AlgoliaDocHit> & DocsSearchTitleHit;
-
-type GroupedHits = {
-  contentType: string;
-  label: string;
-  items: SearchRenderableHit[];
-};
 
 type DocsSearchModalProps = {
   open: boolean;
@@ -412,40 +406,17 @@ function ResultRow({
 }
 
 function SearchResults({ onClose }: { onClose: () => void }) {
-  const { hits } = useHits<SearchRenderableHit>();
+  const { items, isLastPage, showMore } = useInfiniteHits<SearchRenderableHit>();
   const [selectedIndex, setSelectedIndex] = useState(0);
 
-  const groupedHits = useMemo<GroupedHits[]>(() => {
-    const groups = new Map<string, GroupedHits>();
-
-    for (const hit of hits) {
-      const contentType = toCanonicalContentType(getRawContentType(hit));
-      const groupKey = contentType || "documentation";
-      const existingGroup = groups.get(groupKey);
-
-      if (existingGroup) {
-        existingGroup.items.push(hit);
-        continue;
-      }
-
-      groups.set(groupKey, {
-        contentType: groupKey,
-        label: getContentTypeLabel(getRawContentType(hit) || groupKey),
-        items: [hit],
-      });
-    }
-
-    return Array.from(groups.values());
-  }, [hits]);
-
   useEffect(() => {
-    if (hits.length === 0) {
+    if (items.length === 0) {
       setSelectedIndex(0);
       return;
     }
 
-    setSelectedIndex((current) => Math.min(current, hits.length - 1));
-  }, [hits]);
+    setSelectedIndex((current) => Math.min(current, items.length - 1));
+  }, [items]);
 
   const openHit = useEffectEvent((hit: SearchRenderableHit | undefined) => {
     if (!hit?.url) {
@@ -463,23 +434,23 @@ function SearchResults({ onClose }: { onClose: () => void }) {
       return;
     }
 
-    if (hits.length === 0) {
+    if (items.length === 0) {
       return;
     }
 
     if (event.key === "ArrowDown") {
       event.preventDefault();
-      setSelectedIndex((current) => (current + 1) % hits.length);
+      setSelectedIndex((current) => (current + 1) % items.length);
     }
 
     if (event.key === "ArrowUp") {
       event.preventDefault();
-      setSelectedIndex((current) => (current - 1 + hits.length) % hits.length);
+      setSelectedIndex((current) => (current - 1 + items.length) % items.length);
     }
 
     if (event.key === "Enter") {
       event.preventDefault();
-      openHit(hits[selectedIndex]);
+      openHit(items[selectedIndex]);
     }
   });
 
@@ -488,7 +459,7 @@ function SearchResults({ onClose }: { onClose: () => void }) {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [handleKeyDown]);
 
-  if (hits.length === 0) {
+  if (items.length === 0) {
     return (
       <div className="px-4 pb-12 pt-10 text-center">
         <p className="m-0 text-[18px] font-bold text-slate-950 dark:text-slate-50">
@@ -511,31 +482,28 @@ function SearchResults({ onClose }: { onClose: () => void }) {
     );
   }
 
-  let globalIndex = -1;
-
   return (
-    <div className="max-h-[min(60vh,560px)] overflow-auto pb-2">
-      {groupedHits.map((group) => (
-        <section key={group.contentType}>
-          <div className="px-4 pb-1 pt-3.5 text-[11px] font-bold uppercase tracking-[0.06em] text-slate-500 dark:text-slate-400">
-            {group.label}
-          </div>
-          {group.items.map((hit) => {
-            globalIndex += 1;
-            const currentIndex = globalIndex;
-
-            return (
-              <ResultRow
-                key={hit.objectID}
-                hit={hit}
-                isSelected={currentIndex === selectedIndex}
-                onHover={() => setSelectedIndex(currentIndex)}
-                onOpen={() => openHit(hit)}
-              />
-            );
-          })}
-        </section>
+    <div className="max-h-[min(68vh,680px)] overflow-auto pb-2">
+      {items.map((hit, index) => (
+        <ResultRow
+          key={hit.objectID}
+          hit={hit}
+          isSelected={index === selectedIndex}
+          onHover={() => setSelectedIndex(index)}
+          onOpen={() => openHit(hit)}
+        />
       ))}
+      {!isLastPage ? (
+        <div className="px-4 pt-3">
+          <button
+            type="button"
+            className="inline-flex min-h-10 w-full items-center justify-center rounded-xl border border-slate-300 bg-white px-4 text-[13px] font-semibold text-slate-700 transition hover:bg-slate-100 motion-reduce:transition-none dark:border-white/10 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800"
+            onClick={() => showMore()}
+          >
+            Load more
+          </button>
+        </div>
+      ) : null}
     </div>
   );
 }
@@ -658,7 +626,7 @@ export function DocsSearchModal({ open, onClose }: DocsSearchModalProps) {
     >
       <div
         className={cn(
-          "w-full max-w-[760px] overflow-hidden rounded-[18px] border border-slate-300 bg-white shadow-[0_24px_80px_rgba(15,23,42,0.15)] transition duration-200 ease-out motion-reduce:transform-none motion-reduce:transition-none dark:border-white/15 dark:bg-[#101521] dark:shadow-[0_24px_80px_rgba(0,0,0,0.45)]",
+          "w-full max-w-[1040px] overflow-hidden rounded-[18px] border border-slate-300 bg-white shadow-[0_24px_80px_rgba(15,23,42,0.15)] transition duration-200 ease-out motion-reduce:transform-none motion-reduce:transition-none dark:border-white/15 dark:bg-[#101521] dark:shadow-[0_24px_80px_rgba(0,0,0,0.45)]",
           prefersReducedMotion
             ? "opacity-100"
             : isVisible
