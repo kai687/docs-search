@@ -5,6 +5,7 @@ export type SearchHit = {
   title: string;
   url: string;
   content: string;
+  methodName?: string;
   contentType: ContentType;
   section: string;
   headings: string[];
@@ -80,6 +81,7 @@ export const searchRecords: SearchHit[] = [
     url: "https://www.algolia.com/doc/api-reference/api-parameters/filters/",
     content:
       "String. Filter the query with numeric, facet, or tag filters. Supports AND, OR, NOT, ranges, and parentheses for grouping complex filter expressions.",
+    methodName: "index.search",
     contentType: "api",
     section: "Search",
     headings: ["Parameters"],
@@ -91,6 +93,7 @@ export const searchRecords: SearchHit[] = [
     url: "https://www.algolia.com/doc/api-reference/api-parameters/attributesForFaceting/",
     content:
       "Array of strings. Lists attributes you want to use for faceting and filtering. The engine returns matching counts per facet value by default.",
+    methodName: "index.setSettings",
     contentType: "api",
     section: "Indexing",
     headings: ["Settings"],
@@ -102,6 +105,7 @@ export const searchRecords: SearchHit[] = [
     url: "https://www.algolia.com/doc/api-reference/api-parameters/facetFilters/",
     content:
       "Array. Narrows results through facet-based filters and supports nesting for OR groups. Prefer filters when you need a single combined string expression.",
+    methodName: "index.search",
     contentType: "api",
     section: "Search",
     headings: ["Parameters"],

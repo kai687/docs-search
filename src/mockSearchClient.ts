@@ -47,7 +47,9 @@ const getActiveContentType = (params: SearchParams = {}): ContentType | null => 
 };
 
 const getRecordText = (record: SearchHit) =>
-  [record.title, record.section, ...record.headings, record.content].join(" ").toLowerCase();
+  [record.title, record.methodName ?? "", record.section, ...record.headings, record.content]
+    .join(" ")
+    .toLowerCase();
 
 const scoreRecord = (record: SearchHit, terms: string[]) => {
   if (terms.length === 0) {
@@ -58,6 +60,7 @@ const scoreRecord = (record: SearchHit, terms: string[]) => {
   const section = record.section.toLowerCase();
   const headings = record.headings.join(" ").toLowerCase();
   const content = record.content.toLowerCase();
+  const methodName = record.methodName?.toLowerCase() ?? "";
   const haystack = getRecordText(record);
 
   let score = 0;
@@ -75,6 +78,9 @@ const scoreRecord = (record: SearchHit, terms: string[]) => {
     }
     if (headings.includes(term)) {
       score += 5;
+    }
+    if (methodName.includes(term)) {
+      score += 6;
     }
     if (content.includes(term)) {
       score += 2;
@@ -179,6 +185,13 @@ const searchSingleIndex = (request: SearchRequest) => {
         matchLevel: terms.length > 0 ? "partial" : "none",
         matchedWords: terms,
       },
+      methodName: record.methodName
+        ? {
+            value: buildHighlightedValue(record.methodName, terms),
+            matchLevel: terms.length > 0 ? "partial" : "none",
+            matchedWords: terms,
+          }
+        : undefined,
     },
     _snippetResult: {
       content: {

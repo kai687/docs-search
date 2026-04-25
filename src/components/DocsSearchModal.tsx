@@ -29,12 +29,14 @@ type AlgoliaDocHit = {
   urlWithoutAnchor?: string;
   content?: string;
   contentType?: string;
+  methodName?: string;
   recordType?: string;
   breadcrumbSegments?: string[];
   breadcrumbHierarchy?: Record<string, string>;
   hierarchy?: Record<string, string>;
   _highlightResult?: {
     hierarchy?: Record<string, { value?: string; matchLevel?: MatchLevel }>;
+    methodName?: { value?: string; matchLevel?: MatchLevel };
   };
   _snippetResult?: {
     content?: { value?: string };
@@ -53,60 +55,123 @@ const SEARCH_BOX_PLACEHOLDER = "Search the docs";
 const highlightClassName =
   "rounded-sm bg-amber-500/20 px-0.5 text-amber-700 dark:bg-amber-400/20 dark:text-amber-300";
 
-const CONTENT_TYPE_ORDER = ["guides", "api", "tutorials", "concepts", "changelog"];
+const CONTENT_TYPE_ORDER = ["guides", "api", "sdk", "default"];
 
 const CONTENT_TYPE_ALIASES: Record<string, string> = {
   guide: "guides",
   guides: "guides",
   api: "api",
   "api reference": "api",
-  tutorial: "tutorials",
-  tutorials: "tutorials",
-  concept: "concepts",
-  concepts: "concepts",
-  changelog: "changelog",
+  sdk: "sdk",
+  tutorial: "default",
+  tutorials: "default",
+  concept: "default",
+  concepts: "default",
+  changelog: "default",
+  default: "default",
 };
 
 const CONTENT_TYPE_LABELS: Record<string, string> = {
   guide: "Guides",
   guides: "Guides",
-  api: "API reference",
-  "api reference": "API reference",
-  tutorial: "Tutorials",
-  tutorials: "Tutorials",
-  concept: "Concepts",
-  concepts: "Concepts",
-  changelog: "Changelog",
+  api: "API",
+  "api reference": "API",
+  sdk: "SDK",
+  tutorial: "Default",
+  tutorials: "Default",
+  concept: "Default",
+  concepts: "Default",
+  changelog: "Default",
+  default: "Default",
 };
 
-const CONTENT_TYPE_STYLES: Record<string, { iconClassName: string; iconFallback: string }> = {
+const CONTENT_TYPE_STYLES: Record<string, { iconClassName: string; icon: JSX.Element }> = {
   guides: {
     iconClassName: "bg-sky-500/12 text-sky-700 dark:bg-sky-400/15 dark:text-sky-300",
-    iconFallback: "G",
+    icon: (
+      <svg
+        width="14"
+        height="14"
+        viewBox="0 0 14 14"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.25"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        aria-hidden="true"
+      >
+        <path d="M3.5 2.25h5.25a1.75 1.75 0 0 1 1.75 1.75v7.75a.25.25 0 0 1-.39.21 4.2 4.2 0 0 0-4.14-.33L5.5 11.8a.9.9 0 0 1-.73 0l-.47-.17a4.2 4.2 0 0 0-1.91-.25.25.25 0 0 1-.39-.21V4a1.75 1.75 0 0 1 1.5-1.73Z" />
+        <path d="M5 4.25h3" />
+        <path d="M5 6.25h3.5" />
+      </svg>
+    ),
   },
   api: {
     iconClassName:
       "bg-emerald-500/12 text-emerald-700 dark:bg-emerald-400/15 dark:text-emerald-300",
-    iconFallback: "A",
+    icon: (
+      <svg
+        width="14"
+        height="14"
+        viewBox="0 0 14 14"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.4"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        aria-hidden="true"
+      >
+        <path d="M5.25 3 2.5 7l2.75 4" />
+        <path d="M8.75 3 11.5 7l-2.75 4" />
+      </svg>
+    ),
   },
-  tutorials: {
-    iconClassName: "bg-amber-500/12 text-amber-700 dark:bg-amber-400/15 dark:text-amber-300",
-    iconFallback: "T",
+  sdk: {
+    iconClassName:
+      "bg-fuchsia-500/12 text-fuchsia-700 dark:bg-fuchsia-400/15 dark:text-fuchsia-300",
+    icon: (
+      <svg
+        width="14"
+        height="14"
+        viewBox="0 0 14 14"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.25"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        aria-hidden="true"
+      >
+        <rect x="2.25" y="2.25" width="9.5" height="9.5" rx="2" />
+        <path d="M5.25 5.25h3.5" />
+        <path d="M5.25 7h3.5" />
+        <path d="M5.25 8.75h2.25" />
+      </svg>
+    ),
   },
-  concepts: {
-    iconClassName: "bg-violet-500/12 text-violet-700 dark:bg-violet-400/15 dark:text-violet-300",
-    iconFallback: "C",
-  },
-  changelog: {
+  default: {
     iconClassName: "bg-slate-200 text-slate-900 dark:bg-slate-800 dark:text-slate-100",
-    iconFallback: "R",
+    icon: (
+      <svg
+        width="14"
+        height="14"
+        viewBox="0 0 14 14"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.25"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        aria-hidden="true"
+      >
+        <path d="M4 1.75h4.25L11 4.5v7.75H4z" />
+        <path d="M8.25 1.75V4.5H11" />
+        <path d="M5.25 7h4" />
+        <path d="M5.25 9.25h3.5" />
+      </svg>
+    ),
   },
 };
 
-const DEFAULT_CONTENT_TYPE_STYLE = {
-  iconClassName: "bg-slate-200 text-slate-900 dark:bg-slate-800 dark:text-slate-100",
-  iconFallback: "D",
-};
+const DEFAULT_CONTENT_TYPE_STYLE = CONTENT_TYPE_STYLES.default;
 
 const normalizeContentType = (value?: string | null) => value?.trim().toLowerCase() ?? "";
 
@@ -351,7 +416,7 @@ function ResultRow({
         )}
         aria-hidden="true"
       >
-        {style.iconFallback}
+        {style.icon}
       </div>
       <div className="min-w-0">
         {breadcrumb ? (
@@ -388,6 +453,17 @@ function ResultRow({
             getSnippetFallback(getFallbackContent(hit))
           )}
         </div>
+        {hit.methodName ? (
+          <div className="mt-1.5">
+            <code className="inline-flex items-center rounded-md border border-slate-300/80 bg-slate-100 px-2 py-0.5 text-[11px] font-medium text-slate-700 dark:border-white/10 dark:bg-slate-800 dark:text-slate-200">
+              <Highlight
+                hit={hit}
+                attribute="methodName"
+                classNames={{ highlighted: highlightClassName }}
+              />
+            </code>
+          </div>
+        ) : null}
       </div>
       <svg
         className="mt-2 shrink-0 text-slate-400"
