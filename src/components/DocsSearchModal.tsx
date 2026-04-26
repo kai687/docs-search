@@ -1,3 +1,4 @@
+import { BookOpen, Code, FileText, Plug, SquareTerminal } from "lucide-react";
 import { useEffect, useEffectEvent, useRef, useState } from "react";
 import type { Hit } from "instantsearch.js";
 import {
@@ -55,7 +56,7 @@ const SEARCH_BOX_PLACEHOLDER = "Search the docs";
 const highlightClassName =
   "rounded-sm bg-amber-500/20 px-0.5 text-amber-700 dark:bg-amber-400/20 dark:text-amber-300";
 
-const CONTENT_TYPE_ORDER = ["guides", "api", "sdk", "default"];
+const CONTENT_TYPE_ORDER = ["guides", "api", "sdk", "integration", "default"];
 
 const CONTENT_TYPE_ALIASES: Record<string, string> = {
   guide: "guides",
@@ -63,6 +64,8 @@ const CONTENT_TYPE_ALIASES: Record<string, string> = {
   api: "api",
   "api reference": "api",
   sdk: "sdk",
+  integration: "integration",
+  integrations: "integration",
   tutorial: "default",
   tutorials: "default",
   concept: "default",
@@ -77,6 +80,8 @@ const CONTENT_TYPE_LABELS: Record<string, string> = {
   api: "API",
   "api reference": "API",
   sdk: "SDK",
+  integration: "Integrations",
+  integrations: "Integrations",
   tutorial: "Default",
   tutorials: "Default",
   concept: "Default",
@@ -88,86 +93,25 @@ const CONTENT_TYPE_LABELS: Record<string, string> = {
 const CONTENT_TYPE_STYLES: Record<string, { iconClassName: string; icon: JSX.Element }> = {
   guides: {
     iconClassName: "bg-sky-500/12 text-sky-700 dark:bg-sky-400/15 dark:text-sky-300",
-    icon: (
-      <svg
-        width="14"
-        height="14"
-        viewBox="0 0 14 14"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="1.25"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        aria-hidden="true"
-      >
-        <path d="M3.5 2.25h5.25a1.75 1.75 0 0 1 1.75 1.75v7.75a.25.25 0 0 1-.39.21 4.2 4.2 0 0 0-4.14-.33L5.5 11.8a.9.9 0 0 1-.73 0l-.47-.17a4.2 4.2 0 0 0-1.91-.25.25.25 0 0 1-.39-.21V4a1.75 1.75 0 0 1 1.5-1.73Z" />
-        <path d="M5 4.25h3" />
-        <path d="M5 6.25h3.5" />
-      </svg>
-    ),
+    icon: <BookOpen size={14} strokeWidth={1.5} aria-hidden="true" />,
   },
   api: {
     iconClassName:
       "bg-emerald-500/12 text-emerald-700 dark:bg-emerald-400/15 dark:text-emerald-300",
-    icon: (
-      <svg
-        width="14"
-        height="14"
-        viewBox="0 0 14 14"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="1.4"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        aria-hidden="true"
-      >
-        <path d="M5.25 3 2.5 7l2.75 4" />
-        <path d="M8.75 3 11.5 7l-2.75 4" />
-      </svg>
-    ),
+    icon: <Code size={14} strokeWidth={1.5} aria-hidden="true" />,
   },
   sdk: {
     iconClassName:
       "bg-fuchsia-500/12 text-fuchsia-700 dark:bg-fuchsia-400/15 dark:text-fuchsia-300",
-    icon: (
-      <svg
-        width="14"
-        height="14"
-        viewBox="0 0 14 14"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="1.25"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        aria-hidden="true"
-      >
-        <rect x="2.25" y="2.25" width="9.5" height="9.5" rx="2" />
-        <path d="M5.25 5.25h3.5" />
-        <path d="M5.25 7h3.5" />
-        <path d="M5.25 8.75h2.25" />
-      </svg>
-    ),
+    icon: <SquareTerminal size={14} strokeWidth={1.5} aria-hidden="true" />,
+  },
+  integration: {
+    iconClassName: "bg-violet-500/12 text-violet-700 dark:bg-violet-400/15 dark:text-violet-300",
+    icon: <Plug size={14} strokeWidth={1.5} aria-hidden="true" />,
   },
   default: {
     iconClassName: "bg-slate-200 text-slate-900 dark:bg-slate-800 dark:text-slate-100",
-    icon: (
-      <svg
-        width="14"
-        height="14"
-        viewBox="0 0 14 14"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="1.25"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        aria-hidden="true"
-      >
-        <path d="M4 1.75h4.25L11 4.5v7.75H4z" />
-        <path d="M8.25 1.75V4.5H11" />
-        <path d="M5.25 7h4" />
-        <path d="M5.25 9.25h3.5" />
-      </svg>
-    ),
+    icon: <FileText size={14} strokeWidth={1.5} aria-hidden="true" />,
   },
 };
 
