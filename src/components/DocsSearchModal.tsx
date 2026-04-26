@@ -1,6 +1,5 @@
 import { BookOpen, ChevronDown, Code, FileText, Plug, SquareTerminal } from "lucide-react";
 import { useEffect, useEffectEvent, useRef, useState, type ReactNode } from "react";
-import type { Hit } from "instantsearch.js";
 import {
   Configure,
   Highlight,
@@ -45,7 +44,7 @@ type AlgoliaDocHit = {
   };
 };
 
-type SearchRenderableHit = Hit<AlgoliaDocHit> & DocsSearchTitleHit;
+type SearchRenderableHit = AlgoliaDocHit & DocsSearchTitleHit;
 
 type DocsSearchModalProps = {
   open: boolean;
@@ -187,7 +186,7 @@ type HierarchicalFacetItem = {
 };
 
 const getBreadcrumbParts = (hit: SearchRenderableHit) => {
-  const segmentParts = hit.breadcrumbSegments?.map((part) => part.trim()).filter(Boolean);
+  const segmentParts = hit.breadcrumbSegments?.map((part: string) => part.trim()).filter(Boolean);
 
   if (segmentParts?.length) {
     return segmentParts;
@@ -195,19 +194,19 @@ const getBreadcrumbParts = (hit: SearchRenderableHit) => {
 
   const hierarchyParts = Object.entries(hit.breadcrumbHierarchy ?? {})
     .sort(([left], [right]) => left.localeCompare(right))
-    .map(([, value]) => value.trim())
+    .map(([, value]: [string, string]) => value.trim())
     .filter(Boolean);
 
   if (hierarchyParts.length) {
     return hierarchyParts[hierarchyParts.length - 1]
       .split(">")
-      .map((part) => part.trim())
+      .map((part: string) => part.trim())
       .filter(Boolean);
   }
 
   return Object.entries(hit.hierarchy ?? {})
     .sort(([left], [right]) => left.localeCompare(right))
-    .map(([, value]) => value.trim())
+    .map(([, value]: [string, string]) => value.trim())
     .filter(Boolean);
 };
 
@@ -500,7 +499,7 @@ function ResultRow({
             >
               {preferredHierarchyLevel && fullMatchTitleAttribute === preferredHierarchyLevel ? (
                 <Highlight
-                  hit={hit}
+                  hit={hit as never}
                   attribute={getPreferredHierarchyAttribute(preferredHierarchyLevel)}
                   classNames={{ highlighted: highlightClassName }}
                 />
@@ -513,7 +512,7 @@ function ResultRow({
         <div className="text-[13px] leading-5 text-slate-600 dark:text-slate-300">
           {hasContentSnippet(hit) ? (
             <Snippet
-              hit={hit}
+              hit={hit as never}
               attribute="content"
               classNames={{ highlighted: highlightClassName }}
             />
@@ -525,7 +524,7 @@ function ResultRow({
           <div className="mt-1.5">
             <code className="inline-flex items-center rounded-md border border-slate-300/80 bg-slate-100 px-2 py-0.5 text-[11px] font-medium text-slate-700 dark:border-white/10 dark:bg-slate-800 dark:text-slate-200">
               <Highlight
-                hit={hit}
+                hit={hit as never}
                 attribute="methodName"
                 classNames={{ highlighted: highlightClassName }}
               />
