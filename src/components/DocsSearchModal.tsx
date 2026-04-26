@@ -1,5 +1,5 @@
-import { BookOpen, Code, FileText, Plug, SquareTerminal } from "lucide-react";
-import { useEffect, useEffectEvent, useRef, useState } from "react";
+import { BookOpen, ChevronDown, Code, FileText, Plug, SquareTerminal } from "lucide-react";
+import { useEffect, useEffectEvent, useRef, useState, type ReactNode } from "react";
 import type { Hit } from "instantsearch.js";
 import {
   Configure,
@@ -7,6 +7,7 @@ import {
   InstantSearch,
   PoweredBy,
   Snippet,
+  useHierarchicalMenu,
   useInfiniteHits,
   useInstantSearch,
   useMenu,
@@ -149,6 +150,14 @@ const getContentTypeStyle = (value?: string | null) => {
   return CONTENT_TYPE_STYLES[toCanonicalContentType(value)] ?? DEFAULT_CONTENT_TYPE_STYLE;
 };
 
+const HIERARCHICAL_FACET_ATTRIBUTES = [
+  "breadcrumbHierarchy.lvl0",
+  "breadcrumbHierarchy.lvl1",
+  "breadcrumbHierarchy.lvl2",
+] as const;
+
+const HIERARCHICAL_FACET_SEPARATOR = " > ";
+
 const getOrderedContentTypeKeys = (keys: Iterable<string>) => {
   const uniqueKeys = [...new Set(Array.from(keys).map(toCanonicalContentType).filter(Boolean))];
   const order = new Map(CONTENT_TYPE_ORDER.map((key, index) => [key, index]));
@@ -163,6 +172,18 @@ const getOrderedContentTypeKeys = (keys: Iterable<string>) => {
 
     return getContentTypeLabel(left).localeCompare(getContentTypeLabel(right));
   });
+};
+
+const getHierarchicalFacetChipLabel = (value: string) => {
+  return value.split(HIERARCHICAL_FACET_SEPARATOR).pop()?.trim() ?? value;
+};
+
+type HierarchicalFacetItem = {
+  label: string;
+  value: string;
+  count: number;
+  isRefined: boolean;
+  data?: HierarchicalFacetItem[];
 };
 
 const getBreadcrumbParts = (hit: SearchRenderableHit) => {
@@ -259,7 +280,80 @@ function SearchHeader({ onClose }: { onClose: () => void }) {
   );
 }
 
+function HierarchicalFacetChipRow({
+  items,
+  refine,
+  trailingAction,
+}: {
+  items: HierarchicalFacetItem[];
+  refine: (value: string) => void;
+  trailingAction?: ReactNode;
+}) {
+  if (items.length === 0) {
+    return null;
+  }
+
+  return (
+    <div className="flex flex-wrap gap-1.5">
+      {items.map((item) => (
+        <FilterChip key={item.value} active={item.isRefined} onClick={() => refine(item.value)}>
+          {getHierarchicalFacetChipLabel(item.label)}
+          <CountPill>{item.count}</CountPill>
+        </FilterChip>
+      ))}
+      {trailingAction}
+    </div>
+  );
+}
+
+function HierarchicalDrilldownChips() {
+  const { items, refine } = useHierarchicalMenu({
+    attributes: [...HIERARCHICAL_FACET_ATTRIBUTES],
+    limit: 20,
+  });
+
+  const level0Items = items as HierarchicalFacetItem[];
+  const selectedLevel0 = level0Items.find((item) => item.isRefined);
+  const level1Items = selectedLevel0?.data ?? [];
+  const selectedLevel1 = level1Items.find((item) => item.isRefined);
+  const level2Items = selectedLevel1?.data ?? [];
+  const selectedLevel2 = level2Items.find((item) => item.isRefined);
+  const refinedItems = [selectedLevel0, selectedLevel1, selectedLevel2].filter(
+    (item): item is HierarchicalFacetItem => Boolean(item),
+  );
+  const activeDrilldownItem = refinedItems[refinedItems.length - 1];
+
+  if (level0Items.length === 0) {
+    return null;
+  }
+
+  return (
+    <div className="border-t border-slate-300/80 px-4 py-3 dark:border-white/10">
+      <div className="space-y-2.5">
+        <HierarchicalFacetChipRow
+          items={level0Items}
+          refine={refine}
+          trailingAction={
+            activeDrilldownItem ? (
+              <button
+                type="button"
+                className="inline-flex min-h-7 items-center rounded-md px-2 py-1 text-[12px] font-medium text-slate-600 transition hover:bg-slate-100 hover:text-slate-950 motion-reduce:transition-none dark:text-slate-300 dark:hover:bg-slate-800/70 dark:hover:text-slate-50"
+                onClick={() => refine(activeDrilldownItem.value)}
+              >
+                Clear
+              </button>
+            ) : null
+          }
+        />
+        {selectedLevel0 ? <HierarchicalFacetChipRow items={level1Items} refine={refine} /> : null}
+        {selectedLevel1 ? <HierarchicalFacetChipRow items={level2Items} refine={refine} /> : null}
+      </div>
+    </div>
+  );
+}
+
 function FilterChips() {
+  const [isDrilldownOpen, setIsDrilldownOpen] = useState(false);
   const { items, refine } = useMenu({
     attribute: "contentType",
     limit: 20,
@@ -284,24 +378,54 @@ function FilterChips() {
   }
 
   return (
-    <div className="flex flex-wrap items-center gap-1.5 border-b border-slate-300/80 px-4 py-3 dark:border-white/10">
-      <FilterChip
-        active={!activeItem}
-        onClick={() => {
-          if (activeItem) {
-            refine(activeItem.value);
-          }
-        }}
-      >
-        All
-        <CountPill>{allCount}</CountPill>
-      </FilterChip>
-      {orderedItems.map((item) => (
-        <FilterChip key={item.value} active={item.isRefined} onClick={() => refine(item.value)}>
-          {getContentTypeLabel(item.label)}
-          <CountPill>{item.count}</CountPill>
-        </FilterChip>
-      ))}
+    <div className="border-b border-slate-300/80 dark:border-white/10">
+      <div className="flex flex-wrap items-start justify-between gap-3 px-4 py-3">
+        <div className="flex min-w-0 flex-1 flex-wrap items-center gap-1.5">
+          <FilterChip
+            active={!activeItem}
+            onClick={() => {
+              if (activeItem) {
+                refine(activeItem.value);
+              }
+            }}
+          >
+            All
+            <CountPill>{allCount}</CountPill>
+          </FilterChip>
+          {orderedItems.map((item) => (
+            <FilterChip key={item.value} active={item.isRefined} onClick={() => refine(item.value)}>
+              {getContentTypeLabel(item.label)}
+              <CountPill>{item.count}</CountPill>
+            </FilterChip>
+          ))}
+        </div>
+        <button
+          type="button"
+          className={cn(
+            "inline-flex min-h-8 shrink-0 items-center gap-1.5 rounded-lg border border-slate-300/80 px-2.5 py-1 text-[12px] font-medium text-slate-600 transition hover:bg-slate-100 motion-reduce:transition-none dark:border-white/15 dark:text-slate-300 dark:hover:bg-slate-800/70",
+            isDrilldownOpen &&
+              "border-sky-300 bg-sky-500/8 text-sky-700 dark:border-sky-500/30 dark:bg-sky-400/10 dark:text-sky-300",
+          )}
+          onClick={() => setIsDrilldownOpen((current) => !current)}
+          aria-expanded={isDrilldownOpen}
+          aria-controls="facet-drilldown-panel"
+        >
+          Drilldown
+          <ChevronDown
+            size={14}
+            className={cn(
+              "transition duration-200 motion-reduce:transition-none",
+              isDrilldownOpen && "rotate-180",
+            )}
+            aria-hidden="true"
+          />
+        </button>
+      </div>
+      {isDrilldownOpen ? (
+        <div id="facet-drilldown-panel">
+          <HierarchicalDrilldownChips />
+        </div>
+      ) : null}
     </div>
   );
 }
