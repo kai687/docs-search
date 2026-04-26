@@ -37,8 +37,8 @@ export function App() {
           Docs search modal demo
         </h1>
         <p className="mt-[18px] max-w-[720px] text-[18px] leading-[1.7] text-slate-600 dark:text-slate-300">
-          Full working demo app with custom chips, grouped results, keyboard navigation, highlighted
-          matches, and a local mock search client while your Algolia index is still evolving.
+          Full working demo app with custom chips, grouped results, keyboard navigation, and
+          highlighted matches powered by an Algolia index.
         </p>
         <div className="mt-7 flex flex-wrap items-center gap-3.5">
           <button
