@@ -45,6 +45,7 @@ type AlgoliaDocHit = {
 };
 
 type SearchRenderableHit = AlgoliaDocHit & DocsSearchTitleHit;
+type SearchResultHit = ReturnType<typeof useInfiniteHits<SearchRenderableHit>>["items"][number];
 
 type DocsSearchModalProps = {
   open: boolean;
@@ -472,7 +473,7 @@ function ResultRow({
   onHover,
   onOpen,
 }: {
-  hit: SearchRenderableHit;
+  hit: SearchResultHit;
   isSelected: boolean;
   onHover: () => void;
   onOpen: () => void;
@@ -520,7 +521,7 @@ function ResultRow({
             >
               {preferredHierarchyLevel && fullMatchTitleAttribute === preferredHierarchyLevel ? (
                 <Highlight
-                  hit={hit as never}
+                  hit={hit}
                   attribute={getPreferredHierarchyAttribute(preferredHierarchyLevel)}
                   classNames={{ highlighted: highlightClassName }}
                 />
@@ -533,7 +534,7 @@ function ResultRow({
         <div className="text-[13px] leading-5 text-slate-600 dark:text-slate-300">
           {hasContentSnippet(hit) ? (
             <Snippet
-              hit={hit as never}
+              hit={hit}
               attribute="content"
               classNames={{ highlighted: highlightClassName }}
             />
@@ -545,7 +546,7 @@ function ResultRow({
           <div className="mt-1.5">
             <code className="inline-flex items-center rounded-md border border-slate-300/80 bg-slate-100 px-2 py-0.5 text-[11px] font-medium text-slate-700 dark:border-white/10 dark:bg-slate-800 dark:text-slate-200">
               <Highlight
-                hit={hit as never}
+                hit={hit}
                 attribute="methodName"
                 classNames={{ highlighted: highlightClassName }}
               />
