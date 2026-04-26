@@ -683,7 +683,12 @@ function SearchFooter() {
 function SearchExperience({ onClose }: { onClose: () => void }) {
   return (
     <InstantSearch searchClient={searchClient} indexName={indexName}>
-      <Configure hitsPerPage={8} attributesToSnippet={["content:20"]} />
+      <Configure
+        hitsPerPage={8}
+        attributesToSnippet={["content:20"]}
+        // Hide legacy docs from all search results.
+        filters="NOT variant:legacy"
+      />
       <SearchHeader onClose={onClose} />
       <FilterChips />
       <SearchStatsBar />
