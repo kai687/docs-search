@@ -310,6 +310,7 @@ function HierarchicalDrilldownChips() {
     attributes: [...HIERARCHICAL_FACET_ATTRIBUTES],
     limit: 20,
   });
+  const { setIndexUiState } = useInstantSearch();
 
   const level0Items = items as HierarchicalFacetItem[];
   const selectedLevel0 = level0Items.find((item) => item.isRefined);
@@ -337,7 +338,27 @@ function HierarchicalDrilldownChips() {
               <button
                 type="button"
                 className="inline-flex min-h-7 items-center rounded-md px-2 py-1 text-[12px] font-medium text-slate-600 transition hover:bg-slate-100 hover:text-slate-950 motion-reduce:transition-none dark:text-slate-300 dark:hover:bg-slate-800/70 dark:hover:text-slate-50"
-                onClick={() => refine(activeDrilldownItem.value)}
+                onClick={() => {
+                  setIndexUiState((currentIndexUiState) => {
+                    const nextHierarchicalMenu = {
+                      ...currentIndexUiState?.hierarchicalMenu,
+                    };
+
+                    delete nextHierarchicalMenu[HIERARCHICAL_FACET_ATTRIBUTES[0]];
+
+                    if (Object.keys(nextHierarchicalMenu).length === 0) {
+                      const { hierarchicalMenu: _hierarchicalMenu, ...nextIndexUiState } =
+                        currentIndexUiState ?? {};
+
+                      return nextIndexUiState;
+                    }
+
+                    return {
+                      ...currentIndexUiState,
+                      hierarchicalMenu: nextHierarchicalMenu,
+                    };
+                  });
+                }}
               >
                 Clear
               </button>
