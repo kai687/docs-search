@@ -622,7 +622,7 @@ function SearchResults({ onClose }: { onClose: () => void }) {
   useEffect(() => {
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [handleKeyDown]);
+  }, []);
 
   if (items.length === 0) {
     return (

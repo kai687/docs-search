@@ -21,7 +21,7 @@ export function App() {
   useEffect(() => {
     window.addEventListener("keydown", handleGlobalKeyDown);
     return () => window.removeEventListener("keydown", handleGlobalKeyDown);
-  }, [handleGlobalKeyDown]);
+  }, []);
 
   return (
     <main className="min-h-screen px-5 pb-24 pt-14 md:pb-24 md:pt-14">

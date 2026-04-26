@@ -8,14 +8,15 @@ This is a small demo app for a search modal for the Algolia docs.
 - TypeScript
 - React InstantSearch v7
 - Tailwind CSS
-- Vite+ (`vp`)
+- Vite
+- npm
 
 ## Get started
 
 ### Install deps
 
 ```sh
-vp install
+npm install
 ```
 
 ### Configure env vars
@@ -31,7 +32,13 @@ VITE_ALGOLIA_INDEX_NAME=docs_clean
 ### Start dev server
 
 ```sh
-vp dev
+npm run dev
+```
+
+### Validate project
+
+```sh
+npm run check
 ```
 
 ## Project structure
