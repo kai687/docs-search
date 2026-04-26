@@ -2,14 +2,6 @@
 
 This is a small demo app for a search modal for the Algolia docs.
 
-## What this demo shows
-
-- "Quick filters" by content type.
-  Works best if you have clear boundaries between prose "Guide" content,
-  and API reference content.
-- "Drill down" facets. Mirrors the navigation structure of your docs.
-  Works best if you have a clear structure that mirrors user's mental models.
-
 ## Tech
 
 - React 19
