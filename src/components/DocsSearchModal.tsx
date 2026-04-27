@@ -393,33 +393,38 @@ function FilterChips() {
 
     return accumulator;
   }, []);
-
-  if (items.length === 0) {
-    return null;
-  }
+  const hasContentTypeItems = items.length > 0;
 
   return (
     <div className="border-b border-slate-300/80 dark:border-white/10">
       <div className="flex flex-wrap items-start justify-between gap-3 px-4 py-3">
-        <div className="flex min-w-0 flex-1 flex-wrap items-center gap-1.5">
-          <FilterChip
-            active={!activeItem}
-            onClick={() => {
-              if (activeItem) {
-                refine(activeItem.value);
-              }
-            }}
-          >
-            All
-            <CountPill>{allCount}</CountPill>
-          </FilterChip>
-          {orderedItems.map((item) => (
-            <FilterChip key={item.value} active={item.isRefined} onClick={() => refine(item.value)}>
-              {getContentTypeLabel(item.label)}
-              <CountPill>{item.count}</CountPill>
+        {hasContentTypeItems ? (
+          <div className="flex min-w-0 flex-1 flex-wrap items-center gap-1.5">
+            <FilterChip
+              active={!activeItem}
+              onClick={() => {
+                if (activeItem) {
+                  refine(activeItem.value);
+                }
+              }}
+            >
+              All
+              <CountPill>{allCount}</CountPill>
             </FilterChip>
-          ))}
-        </div>
+            {orderedItems.map((item) => (
+              <FilterChip
+                key={item.value}
+                active={item.isRefined}
+                onClick={() => refine(item.value)}
+              >
+                {getContentTypeLabel(item.label)}
+                <CountPill>{item.count}</CountPill>
+              </FilterChip>
+            ))}
+          </div>
+        ) : (
+          <div className="flex-1" />
+        )}
         <button
           type="button"
           className={cn(
@@ -703,7 +708,11 @@ function SearchFooter() {
 
 function SearchExperience({ onClose }: { onClose: () => void }) {
   return (
-    <InstantSearch searchClient={searchClient} indexName={indexName}>
+    <InstantSearch
+      searchClient={searchClient}
+      indexName={indexName}
+      future={{ preserveSharedStateOnUnmount: true }}
+    >
       <Configure
         hitsPerPage={8}
         attributesToSnippet={["content:20"]}
