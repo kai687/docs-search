@@ -261,7 +261,7 @@ function SearchHeader({ onClose }: { onClose: () => void }) {
       </svg>
       <input
         ref={inputRef}
-        className="min-w-[220px] flex-1 border-0 bg-transparent text-[15px] text-slate-950 outline-none placeholder:text-slate-400 dark:text-slate-50"
+        className="min-w-55 flex-1 border-0 bg-transparent text-[15px] text-slate-950 outline-none placeholder:text-slate-400 dark:text-slate-50"
         type="text"
         value={query}
         onChange={(event) => refine(event.currentTarget.value)}
@@ -805,7 +805,7 @@ export function DocsSearchModal({ open, onClose }: DocsSearchModalProps) {
     >
       <div
         className={cn(
-          "w-full max-w-[1040px] overflow-hidden rounded-[18px] border border-slate-300 bg-white shadow-[0_24px_80px_rgba(15,23,42,0.15)] transition duration-200 ease-out motion-reduce:transform-none motion-reduce:transition-none dark:border-white/15 dark:bg-[#101521] dark:shadow-[0_24px_80px_rgba(0,0,0,0.45)]",
+          "w-full max-w-260 overflow-hidden rounded-[18px] border border-slate-300 bg-white shadow-[0_24px_80px_rgba(15,23,42,0.15)] transition duration-200 ease-out motion-reduce:transform-none motion-reduce:transition-none dark:border-white/15 dark:bg-[#101521] dark:shadow-[0_24px_80px_rgba(0,0,0,0.45)]",
           prefersReducedMotion
             ? "opacity-100"
             : isVisible
